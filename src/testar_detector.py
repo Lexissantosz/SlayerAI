@@ -30,6 +30,18 @@ def main() -> None:
         default=0.35,
         help="Confianca minima para exibir deteccoes.",
     )
+    parser.add_argument(
+        "--imgsz",
+        type=int,
+        default=320,
+        help="Resolucao usada na inferencia. 320 tende a ser bem mais rapido em CPU.",
+    )
+    parser.add_argument(
+        "--detectar-a-cada",
+        type=int,
+        default=2,
+        help="Executa inferencia a cada N frames e reutiliza a ultima caixa entre eles.",
+    )
     args = parser.parse_args()
 
     caminho_modelo = Path(args.modelo)
@@ -48,7 +60,15 @@ def main() -> None:
         return
 
     print("Detector ao vivo iniciado.")
+    print(
+        f"Inferencia: imgsz={args.imgsz}, "
+        f"a cada {args.detectar_a_cada} frame(s)"
+    )
     print("Q = encerrar")
+
+    contador_frames = 0
+    ultima_caixa = None
+    ultima_confianca = 0.0
 
     try:
         while True:
@@ -58,45 +78,60 @@ def main() -> None:
                 print(f"Captura encerrada: {erro}")
                 break
 
-            resultados = modelo.predict(
-                source=frame,
-                conf=args.conf,
-                verbose=False,
-            )
+            contador_frames += 1
 
-            preview = frame.copy()
+            if contador_frames % max(1, args.detectar_a_cada) == 0:
+                resultados = modelo.predict(
+                    source=frame,
+                    conf=args.conf,
+                    imgsz=args.imgsz,
+                    verbose=False,
+                    device="cpu",
+                )
 
-            if resultados:
-                caixas = resultados[0].boxes
+                ultima_caixa = None
+                ultima_confianca = 0.0
 
-                for caixa in caixas:
-                    x1, y1, x2, y2 = (
-                        caixa.xyxy[0]
+                if resultados and len(resultados[0].boxes) > 0:
+                    melhor = max(
+                        resultados[0].boxes,
+                        key=lambda caixa: float(caixa.conf[0].item()),
+                    )
+
+                    ultima_caixa = (
+                        melhor.xyxy[0]
                         .cpu()
                         .numpy()
                         .astype(int)
                         .tolist()
                     )
-                    confianca = float(caixa.conf[0].item())
-
-                    cv2.rectangle(
-                        preview,
-                        (x1, y1),
-                        (x2, y2),
-                        (0, 255, 0),
-                        2,
+                    ultima_confianca = float(
+                        melhor.conf[0].item()
                     )
 
-                    cv2.putText(
-                        preview,
-                        f"player {confianca:.2f}",
-                        (x1, max(20, y1 - 8)),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.55,
-                        (0, 255, 0),
-                        2,
-                        cv2.LINE_AA,
-                    )
+            preview = frame.copy()
+
+            if ultima_caixa is not None:
+                x1, y1, x2, y2 = ultima_caixa
+
+                cv2.rectangle(
+                    preview,
+                    (x1, y1),
+                    (x2, y2),
+                    (0, 255, 0),
+                    2,
+                )
+
+                cv2.putText(
+                    preview,
+                    f"player {ultima_confianca:.2f}",
+                    (x1, max(20, y1 - 8)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.55,
+                    (0, 255, 0),
+                    2,
+                    cv2.LINE_AA,
+                )
 
             cv2.imshow(
                 "SlayerAI - Detector ao vivo",
