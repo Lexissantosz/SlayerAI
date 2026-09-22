@@ -26,3 +26,9 @@ assets/personagem_template.png
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Splits locais de treino/validacao
+dataset/train/*
+dataset/val/*
+!dataset/train/.gitkeep
+!dataset/val/.gitkeep
