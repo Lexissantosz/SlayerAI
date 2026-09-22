@@ -203,6 +203,14 @@ def selecionar_caixa(
         tecla = cv2.waitKey(20) & 0xFF
 
         if tecla in (13, 32):
+            if estado["caixa"] is None:
+                print(
+                    "Nenhuma caixa definida. "
+                    "Desenhe o player com o mouse ou pressione N "
+                    "se o personagem realmente nao estiver visivel."
+                )
+                continue
+
             return "salvar", estado["caixa"]
 
         if tecla == ord("n"):
