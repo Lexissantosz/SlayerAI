@@ -4,3 +4,6 @@ pywin32>=306
 ultralytics>=8.3
 onnx>=1.17
 onnxruntime>=1.20
+
+# Compatibilidade com CPUs antigas sem AVX2/FMA
+polars[rtcompat]
