@@ -1,4 +1,5 @@
 import argparse
+import time
 from pathlib import Path
 
 import cv2
@@ -12,7 +13,9 @@ from captura import (
 
 
 ROOT = Path(__file__).resolve().parent.parent
-MODELO_PADRAO = ROOT / "modelos/player_v01_best.pt"
+MODELO_ONNX = ROOT / "modelos/player_v01.onnx"
+MODELO_PT = ROOT / "modelos/player_v01_best.pt"
+MODELO_PADRAO = MODELO_ONNX if MODELO_ONNX.exists() else MODELO_PT
 
 
 def main() -> None:
@@ -69,6 +72,9 @@ def main() -> None:
     contador_frames = 0
     ultima_caixa = None
     ultima_confianca = 0.0
+    ultima_inferencia_ms = 0.0
+    fps = 0.0
+    ultimo_frame_tempo = time.perf_counter()
 
     try:
         while True:
@@ -80,7 +86,16 @@ def main() -> None:
 
             contador_frames += 1
 
+            agora = time.perf_counter()
+            delta = agora - ultimo_frame_tempo
+            ultimo_frame_tempo = agora
+            if delta > 0:
+                fps_instantaneo = 1.0 / delta
+                fps = fps_instantaneo if fps == 0 else (fps * 0.9 + fps_instantaneo * 0.1)
+
             if contador_frames % max(1, args.detectar_a_cada) == 0:
+                inicio_inferencia = time.perf_counter()
+
                 resultados = modelo.predict(
                     source=frame,
                     conf=args.conf,
@@ -88,6 +103,10 @@ def main() -> None:
                     verbose=False,
                     device="cpu",
                 )
+
+                ultima_inferencia_ms = (
+                    time.perf_counter() - inicio_inferencia
+                ) * 1000.0
 
                 ultima_caixa = None
                 ultima_confianca = 0.0
@@ -132,6 +151,17 @@ def main() -> None:
                     2,
                     cv2.LINE_AA,
                 )
+
+            cv2.putText(
+                preview,
+                f"FPS {fps:.1f} | inferencia {ultima_inferencia_ms:.0f} ms",
+                (10, 24),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.55,
+                (255, 255, 255),
+                2,
+                cv2.LINE_AA,
+            )
 
             cv2.imshow(
                 "SlayerAI - Detector ao vivo",
