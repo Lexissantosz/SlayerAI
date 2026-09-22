@@ -36,3 +36,4 @@ dataset/val/*
 # Pesos de treino locais; o modelo portatil final sera ONNX
 modelos/*.pt
 modelos/*.engine
+!modelos/player_v01.onnx
