@@ -32,3 +32,7 @@ dataset/train/*
 dataset/val/*
 !dataset/train/.gitkeep
 !dataset/val/.gitkeep
+
+# Pesos de treino locais; o modelo portatil final sera ONNX
+modelos/*.pt
+modelos/*.engine
