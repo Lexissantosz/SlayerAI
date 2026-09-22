@@ -1,0 +1,28 @@
+.venv/
+__pycache__/
+*.py[cod]
+.vscode/
+.idea/
+
+# Capturas e dados locais do jogo
+capturas/*.png
+dataset/raw/*
+dataset/labels_raw/*
+dataset/images/*
+dataset/labels/*
+!dataset/raw/.gitkeep
+!dataset/labels_raw/.gitkeep
+!dataset/images/.gitkeep
+!dataset/labels/.gitkeep
+
+# Artefatos de treino
+runs/
+models/*.pt
+models/*.engine
+
+# Template local opcional usado apenas para pré-rotulagem
+assets/personagem_template.png
+
+# Sistema
+.DS_Store
+Thumbs.db
