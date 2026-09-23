@@ -48,3 +48,6 @@ config.local.json
 # Sessoes locais de dry-run/replay
 sessoes/*
 !sessoes/.gitkeep
+
+# Backups locais podem conter dataset e modelos
+backups/
