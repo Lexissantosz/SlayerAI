@@ -64,3 +64,27 @@ Depois da visao, o projeto pode evoluir para:
 3. politica de decisoes;
 4. envio de comandos ao jogo em segundo plano;
 5. minigames e aprendizado a partir de demonstracoes.
+
+
+## Camada de estado e decisao
+
+Uma camada pura, ainda sem enviar comandos ao jogo, foi adicionada para separar percepcao de comportamento:
+
+```text
+deteccoes visuais
+    |
+    v
+EstadoJogo
+    |
+    v
+DecisorBasico
+    |
+    v
+Decisao explicavel
+(pular / atacar / atirar / nenhuma)
+```
+
+- `estado_jogo.py`: representa player e objetos visiveis de forma independente do detector;
+- `decisor.py`: aplica regras simples e explicaveis sobre o estado atual;
+- `simular_decisoes.py`: permite testar a logica sem abrir o jogo;
+- a camada de entrada real continua desacoplada e sera integrada somente depois dos testes visuais.
