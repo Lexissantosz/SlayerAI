@@ -1,6 +1,12 @@
 from dataclasses import dataclass, field
+from typing import Protocol
 
 from decisor import Acao, Decisao
+
+
+class EmissorEntrada(Protocol):
+    def pressionar(self, codigo_tecla: int) -> None:
+        ...
 
 
 class ExecutorAcoes:
@@ -26,3 +32,23 @@ class ExecutorSimulado(ExecutorAcoes):
             return None
 
         return self.historico[-1].acao
+
+
+@dataclass
+class ExecutorTeclas(ExecutorAcoes):
+    emissor: EmissorEntrada
+    mapeamento: dict[Acao, int]
+
+    def executar(self, decisao: Decisao) -> None:
+        if decisao.acao == Acao.NENHUMA:
+            return
+
+        codigo = self.mapeamento.get(decisao.acao)
+
+        if codigo is None:
+            raise KeyError(
+                f"Acao sem tecla configurada: "
+                f"{decisao.acao.value}"
+            )
+
+        self.emissor.pressionar(codigo)
