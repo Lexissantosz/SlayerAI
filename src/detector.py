@@ -1,21 +1,14 @@
 import time
-from dataclasses import dataclass
 from pathlib import Path
 
 from ultralytics import YOLO
 
+from tipos_visao import Deteccao
 from visao_utils import (
     ROI,
     calcular_roi_pixels,
     suavizar_caixa,
 )
-
-
-@dataclass(frozen=True)
-class Deteccao:
-    caixa: tuple[int, int, int, int]
-    confianca: float
-    inferencia_ms: float
 
 
 class DetectorPlayer:
