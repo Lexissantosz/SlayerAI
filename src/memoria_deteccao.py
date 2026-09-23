@@ -8,6 +8,7 @@ class MemoriaDeteccao:
     max_falhas: int = 2
     max_deslocamento_x: float = 0.18
     confianca_reaquisicao: float = 0.55
+    max_centro_x: float | None = None
     ultima: Deteccao | None = None
     falhas_consecutivas: int = 0
     ultima_rejeitada: bool = False
@@ -26,16 +27,49 @@ class MemoriaDeteccao:
                 "confianca_reaquisicao deve estar entre 0 e 1."
             )
 
+        if (
+            self.max_centro_x is not None
+            and not 0 <= self.max_centro_x <= 1
+        ):
+            raise ValueError(
+                "max_centro_x deve estar entre 0 e 1."
+            )
+
     @staticmethod
     def _centro_x(deteccao: Deteccao) -> float:
         x1, _, x2, _ = deteccao.caixa
         return (x1 + x2) / 2
+
+    def _posicao_absoluta_plausivel(
+        self,
+        deteccao: Deteccao,
+        largura_frame: int | None,
+    ) -> bool:
+        if (
+            self.max_centro_x is None
+            or largura_frame is None
+            or largura_frame <= 0
+        ):
+            return True
+
+        centro_normalizado = (
+            self._centro_x(deteccao)
+            / largura_frame
+        )
+
+        return centro_normalizado <= self.max_centro_x
 
     def _transicao_plausivel(
         self,
         deteccao: Deteccao,
         largura_frame: int | None,
     ) -> bool:
+        if not self._posicao_absoluta_plausivel(
+            deteccao,
+            largura_frame,
+        ):
+            return False
+
         if self.ultima is None or largura_frame is None:
             return True
 
