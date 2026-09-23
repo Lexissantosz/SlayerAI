@@ -44,3 +44,7 @@ yolo*.pt
 
 # Configuracao local de controles
 config.local.json
+
+# Sessoes locais de dry-run/replay
+sessoes/*
+!sessoes/.gitkeep
