@@ -29,7 +29,7 @@ A camada de controle do jogo ainda nao faz parte da v0.1.
 ## Requisitos
 
 - Windows;
-- Python 3.14;
+- Python 3.12+;
 - Idle Slayer instalado;
 - jogo aberto e restaurado para captura;
 - ambiente virtual recomendado.
