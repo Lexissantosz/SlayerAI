@@ -97,6 +97,45 @@ def test_aceita_reaquisicao_distante_com_confianca_forte():
     assert memoria.ultima_rejeitada is False
 
 
+def test_rejeita_deteccao_fora_da_faixa_absoluta():
+    memoria = MemoriaDeteccao(
+        max_centro_x=0.14,
+    )
+
+    falso = det(
+        caixa=(150, 200, 210, 320),
+        confianca=0.95,
+    )
+
+    assert (
+        memoria.atualizar(
+            falso,
+            largura_frame=1000,
+        )
+        is None
+    )
+    assert memoria.ultima_rejeitada is True
+
+
+def test_aceita_deteccao_na_faixa_absoluta():
+    memoria = MemoriaDeteccao(
+        max_centro_x=0.14,
+    )
+
+    player = det(
+        caixa=(40, 200, 100, 320),
+        confianca=0.40,
+    )
+
+    assert (
+        memoria.atualizar(
+            player,
+            largura_frame=1000,
+        )
+        == player
+    )
+
+
 def test_rejeita_limite_negativo():
     with pytest.raises(ValueError):
         MemoriaDeteccao(max_falhas=-1)
