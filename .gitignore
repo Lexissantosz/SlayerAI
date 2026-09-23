@@ -37,3 +37,7 @@ dataset/val/*
 modelos/*.pt
 modelos/*.engine
 !modelos/player_v01.onnx
+
+.pytest_cache/
+*.log
+yolo*.pt
