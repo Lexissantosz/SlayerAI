@@ -10,6 +10,7 @@ from captura import (
     IdleSlayerNaoEncontrado,
 )
 from detector import DetectorPlayer
+from memoria_deteccao import MemoriaDeteccao
 from visao_utils import (
     calcular_roi_pixels,
     parse_roi,
@@ -66,6 +67,15 @@ def main() -> None:
             "1 desativa suavizacao."
         ),
     )
+    parser.add_argument(
+        "--tolerar-falhas",
+        type=int,
+        default=2,
+        help=(
+            "Mantem a ultima deteccao por N falhas "
+            "consecutivas. Padrao: 2."
+        ),
+    )
     args = parser.parse_args()
 
     try:
@@ -89,11 +99,23 @@ def main() -> None:
 
     detectar_a_cada = max(1, args.detectar_a_cada)
 
+    try:
+        memoria = MemoriaDeteccao(
+            max_falhas=args.tolerar_falhas,
+        )
+    except ValueError as erro:
+        print(erro)
+        return
+
     print("Detector ao vivo iniciado.")
     print(f"Modelo: {args.modelo}")
     print(
         f"Inferencia: imgsz={args.imgsz}, "
         f"a cada {detectar_a_cada} frame(s)"
+    )
+    print(
+        "Tolerancia temporal: "
+        f"{args.tolerar_falhas} falha(s)"
     )
 
     if roi is not None:
@@ -105,6 +127,7 @@ def main() -> None:
     ultima_caixa = None
     ultima_confianca = 0.0
     ultima_inferencia_ms = 0.0
+    em_memoria = False
     fps = 0.0
     ultimo_frame_tempo = time.perf_counter()
 
@@ -135,17 +158,27 @@ def main() -> None:
                 )
 
             if contador_frames % detectar_a_cada == 0:
-                deteccao = detector.detectar(frame)
+                deteccao_bruta = detector.detectar(frame)
+                deteccao = memoria.atualizar(
+                    deteccao_bruta
+                )
+                em_memoria = (
+                    deteccao_bruta is None
+                    and deteccao is not None
+                )
 
                 if deteccao is None:
                     ultima_caixa = None
                     ultima_confianca = 0.0
+                    em_memoria = False
                 else:
                     ultima_caixa = deteccao.caixa
                     ultima_confianca = deteccao.confianca
-                    ultima_inferencia_ms = (
-                        deteccao.inferencia_ms
-                    )
+
+                    if deteccao_bruta is not None:
+                        ultima_inferencia_ms = (
+                            deteccao.inferencia_ms
+                        )
 
             preview = frame.copy()
 
@@ -165,22 +198,32 @@ def main() -> None:
 
             if ultima_caixa is not None:
                 x1, y1, x2, y2 = ultima_caixa
+                cor = (
+                    (0, 215, 255)
+                    if em_memoria
+                    else (0, 255, 0)
+                )
+                rotulo = (
+                    f"player {ultima_confianca:.2f} memoria"
+                    if em_memoria
+                    else f"player {ultima_confianca:.2f}"
+                )
 
                 cv2.rectangle(
                     preview,
                     (x1, y1),
                     (x2, y2),
-                    (0, 255, 0),
+                    cor,
                     2,
                 )
 
                 cv2.putText(
                     preview,
-                    f"player {ultima_confianca:.2f}",
+                    rotulo,
                     (x1, max(20, y1 - 8)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.55,
-                    (0, 255, 0),
+                    cor,
                     2,
                     cv2.LINE_AA,
                 )
