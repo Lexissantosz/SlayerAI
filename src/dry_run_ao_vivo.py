@@ -66,6 +66,15 @@ def main() -> None:
         default=1,
     )
     parser.add_argument(
+        "--player-max-x",
+        type=float,
+        default=0.14,
+        help=(
+            "Centro X maximo esperado do player, "
+            "normalizado pela largura da tela. Padrao: 0.14."
+        ),
+    )
+    parser.add_argument(
         "--saida",
         default="sessoes/live_dry_run.jsonl",
     )
@@ -82,6 +91,7 @@ def main() -> None:
         )
         memoria = MemoriaDeteccao(
             max_falhas=args.tolerar_falhas,
+            max_centro_x=args.player_max_x,
         )
     except (FileNotFoundError, ValueError) as erro:
         print(erro)
@@ -111,7 +121,8 @@ def main() -> None:
     print(
         f"conf={args.conf} | imgsz={args.imgsz} | "
         f"ROI={args.roi} | "
-        f"tolerancia={args.tolerar_falhas}"
+        f"tolerancia={args.tolerar_falhas} | "
+        f"player_max_x={args.player_max_x:.2f}"
     )
     print("Q = encerrar")
 
