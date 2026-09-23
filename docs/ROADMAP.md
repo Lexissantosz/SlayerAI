@@ -15,6 +15,15 @@
 
 ## v0.2 - Entender a tela
 
+Preparacao ja iniciada:
+
+- [x] Estado visual desacoplado do detector;
+- [x] Tipos de objetos previstos no dominio;
+- [x] Motor inicial de decisoes explicaveis;
+- [x] Simulador offline das regras;
+- [ ] conectar deteccoes reais ao EstadoJogo;
+- [ ] treinar classes alem do player;
+
 Classes candidatas:
 
 - player;
