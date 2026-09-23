@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from decisor import Decisao, DecisorBasico
-from detector import Deteccao
+from tipos_visao import Deteccao
 from estado_jogo import EstadoJogo
 from executor import ExecutorAcoes
 from percepcao import (
