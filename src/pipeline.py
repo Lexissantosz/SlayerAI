@@ -4,7 +4,11 @@ from decisor import Decisao, DecisorBasico
 from detector import Deteccao
 from estado_jogo import EstadoJogo
 from executor import ExecutorAcoes
-from percepcao import estado_a_partir_deteccao_player
+from percepcao import (
+    DeteccaoObjeto,
+    estado_a_partir_deteccao_player,
+    estado_a_partir_deteccoes,
+)
 
 
 @dataclass(frozen=True)
@@ -22,6 +26,18 @@ class CicloSlayerAI:
         self.decisor = decisor
         self.executor = executor
 
+    def _processar_estado(
+        self,
+        estado: EstadoJogo,
+    ) -> ResultadoCiclo:
+        decisao = self.decisor.decidir(estado)
+        self.executor.executar(decisao)
+
+        return ResultadoCiclo(
+            estado=estado,
+            decisao=decisao,
+        )
+
     def processar(
         self,
         largura: int,
@@ -34,10 +50,18 @@ class CicloSlayerAI:
             deteccao=deteccao_player,
         )
 
-        decisao = self.decisor.decidir(estado)
-        self.executor.executar(decisao)
+        return self._processar_estado(estado)
 
-        return ResultadoCiclo(
-            estado=estado,
-            decisao=decisao,
+    def processar_deteccoes(
+        self,
+        largura: int,
+        altura: int,
+        deteccoes: list[DeteccaoObjeto],
+    ) -> ResultadoCiclo:
+        estado = estado_a_partir_deteccoes(
+            largura=largura,
+            altura=altura,
+            deteccoes=deteccoes,
         )
+
+        return self._processar_estado(estado)
