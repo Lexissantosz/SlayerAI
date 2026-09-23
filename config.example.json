@@ -1,0 +1,9 @@
+{
+  "titulo_janela": "Idle Slayer",
+  "duracao_pressao": 0.03,
+  "teclas": {
+    "pular": null,
+    "atacar": null,
+    "atirar": null
+  }
+}
