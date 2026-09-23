@@ -1,4 +1,4 @@
-from detector import Deteccao
+from tipos_visao import Deteccao
 from estado_jogo import TipoObjeto
 from percepcao import (
     DeteccaoObjeto,
