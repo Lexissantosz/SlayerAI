@@ -160,10 +160,14 @@ def main() -> None:
             if contador_frames % detectar_a_cada == 0:
                 deteccao_bruta = detector.detectar(frame)
                 deteccao = memoria.atualizar(
-                    deteccao_bruta
+                    deteccao_bruta,
+                    largura_frame=frame.shape[1],
                 )
                 em_memoria = (
-                    deteccao_bruta is None
+                    (
+                        deteccao_bruta is None
+                        or memoria.ultima_rejeitada
+                    )
                     and deteccao is not None
                 )
 
