@@ -222,3 +222,26 @@ SlayerAI/
 ```
 
 Mais detalhes tecnicos estao em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e o planejamento em [docs/ROADMAP.md](docs/ROADMAP.md).
+
+
+## Dry-run e replay
+
+Para exercitar o pipeline completo sem enviar nenhuma tecla:
+
+```powershell
+python src/dry_run.py
+```
+
+O comando gera uma sessao local em:
+
+```text
+sessoes/dry_run.jsonl
+```
+
+Para reproduzir a sessao depois:
+
+```powershell
+python src/replay_sessao.py sessoes/dry_run.jsonl
+```
+
+O replay recalcula as decisoes e informa se houve divergencia em relacao ao que foi registrado. Arquivos de sessao sao locais e nao sao versionados por padrao.
