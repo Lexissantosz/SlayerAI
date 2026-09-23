@@ -41,3 +41,6 @@ modelos/*.engine
 .pytest_cache/
 *.log
 yolo*.pt
+
+# Configuracao local de controles
+config.local.json
