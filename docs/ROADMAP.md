@@ -37,6 +37,15 @@ Objetivo: transformar deteccoes em um estado simples e consultavel.
 
 ## v0.3 - Agir
 
+Preparacao ja iniciada:
+
+- [x] dry-run seguro sem envio de teclas;
+- [x] registro de sessoes em JSONL;
+- [x] replay offline das decisoes;
+- [x] executor por teclas desacoplado;
+- [x] cooldown contra spam de acoes;
+- [ ] validar entrada real com o jogo;
+
 - entrada em segundo plano;
 - pulo;
 - ataque;
