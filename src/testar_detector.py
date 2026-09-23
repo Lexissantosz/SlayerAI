@@ -76,6 +76,15 @@ def main() -> None:
             "consecutivas. Padrao: 2."
         ),
     )
+    parser.add_argument(
+        "--player-max-x",
+        type=float,
+        default=0.14,
+        help=(
+            "Centro X maximo esperado do player, "
+            "normalizado pela largura da tela. Padrao: 0.14."
+        ),
+    )
     args = parser.parse_args()
 
     try:
@@ -102,6 +111,7 @@ def main() -> None:
     try:
         memoria = MemoriaDeteccao(
             max_falhas=args.tolerar_falhas,
+            max_centro_x=args.player_max_x,
         )
     except ValueError as erro:
         print(erro)
@@ -116,6 +126,10 @@ def main() -> None:
     print(
         "Tolerancia temporal: "
         f"{args.tolerar_falhas} falha(s)"
+    )
+    print(
+        "Faixa horizontal do player: "
+        f"centro_x <= {args.player_max_x:.2f}"
     )
 
     if roi is not None:
