@@ -1,5 +1,5 @@
 from decisor import Acao, DecisorBasico
-from detector import Deteccao
+from tipos_visao import Deteccao
 from estado_jogo import TipoObjeto
 from executor import ExecutorSimulado
 from percepcao import DeteccaoObjeto
