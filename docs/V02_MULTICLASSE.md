@@ -45,6 +45,15 @@ python src/validar_dataset_v02.py
 python src/preparar_dataset_v02.py --val-prefixo frame
 ```
 
+Para manter validacao em mais de um mundo, use varios prefixos:
+
+```powershell
+python src/preparar_dataset_v02.py --val-prefixo frame --val-prefixo mundo2_val
+```
+
+Isso permite treinar com exemplos de varios mundos sem misturar, na validacao,
+frames temporalmente proximos das sessoes de treino.
+
 ### 3. Treinar
 
 Configuracao inicial pensada para CPU antiga:
@@ -117,3 +126,24 @@ validada.
   `inimigo` generalizada;
 - validar primeiro em dry-run;
 - manter ascensao e progresso estrategico sob controle do usuario.
+
+
+## Baseline 0.2 inicial
+
+A primeira avaliacao do baseline, treinado antes da coleta do segundo mundo,
+obteve:
+
+- precisao global: 0.895;
+- recall global: 0.796;
+- mAP50 global: 0.867;
+- mAP50-95 global: 0.405;
+- player: precisao 0.975, recall 1.000, mAP50 0.995, mAP50-95 0.569;
+- inimigo: precisao 0.814, recall 0.593, mAP50 0.740, mAP50-95 0.241.
+
+O player ficou forte no conjunto de validacao do mundo conhecido, enquanto a
+classe inimigo ainda perde deteccoes e tem localizacao menos precisa. Em teste
+ao vivo num mundo nao presente no treino, o baseline nao gerou deteccoes, o que
+confirma que a validacao atual ainda nao mede generalizacao entre mundos.
+
+Proxima iteracao: coletar duas sessoes independentes no novo mundo, usando uma
+para treino e outra para validacao.
