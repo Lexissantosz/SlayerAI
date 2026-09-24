@@ -66,3 +66,6 @@ dataset_v02/val/*
 
 # Demonstracoes locais do usuario
 demonstracoes/
+
+# Modelos locais de imitacao
+modelos/*.npz
