@@ -33,9 +33,13 @@ def salvar_frame(
     frame: np.ndarray,
     indice: int,
     pasta: Path = PASTA_RAW,
+    prefixo: str = "frame",
 ) -> Path:
     momento = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    caminho = pasta / f"frame_{indice:05d}_{momento}.png"
+    caminho = (
+        pasta
+        / f"{prefixo}_{indice:05d}_{momento}.png"
+    )
     cv2.imwrite(str(caminho), frame)
     return caminho
 
@@ -70,7 +74,29 @@ def main() -> None:
             "Padrao: dataset/raw"
         ),
     )
+    parser.add_argument(
+        "--prefixo",
+        default="frame",
+        help=(
+            "Prefixo dos arquivos para identificar "
+            "a sessao. Ex.: sessao2"
+        ),
+    )
     args = parser.parse_args()
+
+    prefixo = "".join(
+        caractere
+        for caractere in args.prefixo.strip()
+        if (
+            caractere.isalnum()
+            or caractere in ("-", "_")
+        )
+    )
+
+    if not prefixo:
+        raise ValueError(
+            "--prefixo deve conter letras ou numeros."
+        )
 
     pasta_saida = Path(args.saida)
     pasta_saida.mkdir(parents=True, exist_ok=True)
@@ -83,6 +109,7 @@ def main() -> None:
 
     print("Coleta iniciada.")
     print(f"Saida: {pasta_saida}")
+    print(f"Sessao: {prefixo}")
     print("Q = encerrar | S = salvar um frame imediatamente")
 
     ultimo_salvo = 0.0
@@ -135,6 +162,7 @@ def main() -> None:
                     frame,
                     salvos,
                     pasta=pasta_saida,
+                    prefixo=prefixo,
                 )
                 salvos += 1
                 ultimo_salvo = agora
