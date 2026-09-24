@@ -75,9 +75,32 @@ Preparacao ja iniciada:
 
 - coleta orientada a objetivos;
 - Chest Hunt;
-- Bonus Stage;
+- Bonus Stage como modo separado;
 - registro de episodios;
 - aprendizado a partir de demonstracoes e correcoes do usuario.
+
+### Bonus Stage
+
+A fase bonus muda o objetivo do agente e deve ser tratada como um estado
+separado do jogo normal.
+
+Fluxo planejado:
+
+1. detectar a caixa roxa no modo normal;
+2. reconhecer a transicao para a fase bonus;
+3. alternar o modo global de NORMAL para BONUS;
+4. detectar plataformas, buracos e orbs azuis;
+5. acompanhar quantidade restante de orbs e limite de tempo;
+6. executar uma politica de salto especifica para evitar quedas e coletar
+   orbs;
+7. detectar sucesso, falha ou saida e retornar ao modo NORMAL;
+8. registrar o episodio completo para analise posterior.
+
+A primeira implementacao sera explicita e baseada em regras/maquina de
+estados. Como a fase bonus e relativamente rara, aprendizado por tentativa
+e erro desde o inicio teria poucas oportunidades de treinamento e desperdicaria
+eventos valiosos. Demonstracoes do usuario podem ser registradas depois para
+melhorar timing, rota e decisoes sem substituir a politica segura inicial.
 
 Ascensoes, compras e progresso estrategico continuam sob controle do
 usuario ate existir uma camada separada e explicitamente testada.
