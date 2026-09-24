@@ -4,7 +4,7 @@ SlayerAI e um projeto experimental de visao computacional e automacao para o Idl
 
 A proposta e construir a automacao em camadas: primeiro enxergar o jogo com seguranca e de forma portatil; depois reconhecer outros elementos da tela; por fim, adicionar decisoes e comandos.
 
-## Estado atual: v0.1 concluida na branch de feature
+## Estado atual: v0.1 concluida
 
 A v0.1 ja possui:
 
