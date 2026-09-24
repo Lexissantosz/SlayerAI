@@ -88,3 +88,14 @@ Decisao explicavel
 - `decisor.py`: aplica regras simples e explicaveis sobre o estado atual;
 - `simular_decisoes.py`: permite testar a logica sem abrir o jogo;
 - a camada de entrada real continua desacoplada e sera integrada somente depois dos testes visuais.
+
+
+## Modelo semantico e feedback
+
+A evolucao planejada da camada de estado inclui nao apenas objetos visiveis,
+mas tambem eventos, HUD, relacoes funcionais e confirmacao do resultado das
+acoes. O objetivo e fechar o ciclo percepcao -> decisao -> acao -> resultado,
+mantendo registro dos episodios.
+
+O desenho detalhado esta em
+[`docs/SEMANTIC_MODEL.md`](SEMANTIC_MODEL.md).
