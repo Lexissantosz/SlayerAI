@@ -82,6 +82,7 @@ def salvar_evento(
     return {
         "indice": indice,
         "acao": evento["acao"],
+        "origem": evento.get("origem", "teclado"),
         "codigo_tecla": evento["codigo_tecla"],
         "timestamp": evento["timestamp"],
         "pasta": str(pasta_evento),
@@ -132,6 +133,11 @@ def main() -> None:
             "Padrao: 1.0."
         ),
     )
+    parser.add_argument(
+        "--sem-mouse-pulo",
+        action="store_true",
+        help="Nao trata clique esquerdo do mouse como pulo.",
+    )
     args = parser.parse_args()
 
     if args.fps <= 0:
@@ -146,16 +152,18 @@ def main() -> None:
         args.config
     )
 
-    teclas = {
-        acao: config.tecla_para(acao)
-        for acao in ACOES_OBSERVADAS
-        if config.tecla_para(acao) is not None
-    }
+    entradas = []
 
-    if not teclas:
-        print(
-            "Nenhuma tecla configurada para observar."
-        )
+    for acao in ACOES_OBSERVADAS:
+        codigo = config.tecla_para(acao)
+        if codigo is not None:
+            entradas.append((acao, codigo, f"teclado:{codigo}"))
+
+    if not args.sem_mouse_pulo:
+        entradas.append((Acao.PULAR, win32con.VK_LBUTTON, "mouse_esquerdo"))
+
+    if not entradas:
+        print("Nenhuma entrada configurada para observar.")
         return
 
     pasta_raiz = Path(args.saida)
@@ -188,9 +196,9 @@ def main() -> None:
         maxlen=quantidade_antes
     )
 
-    estados_teclas = {
-        acao: False
-        for acao in teclas
+    estados_entradas = {
+        (acao, codigo, origem): False
+        for acao, codigo, origem in entradas
     }
 
     pendentes: list[dict] = []
@@ -210,8 +218,8 @@ def main() -> None:
     print(
         "Observando: "
         + ", ".join(
-            f"{acao.value}={codigo}"
-            for acao, codigo in teclas.items()
+            f"{acao.value}={origem}"
+            for acao, codigo, origem in entradas
         )
     )
 
@@ -233,18 +241,15 @@ def main() -> None:
             agora = time.time()
             novas_acoes = []
 
-            for acao, codigo in teclas.items():
-                pressionada = tecla_pressionada(
-                    codigo
-                )
-                anterior = estados_teclas[acao]
+            for acao, codigo, origem in entradas:
+                chave = (acao, codigo, origem)
+                pressionada = tecla_pressionada(codigo)
+                anterior = estados_entradas[chave]
 
                 if pressionada and not anterior:
-                    novas_acoes.append(
-                        (acao, codigo)
-                    )
+                    novas_acoes.append((acao, codigo, origem))
 
-                estados_teclas[acao] = pressionada
+                estados_entradas[chave] = pressionada
 
             for evento in pendentes:
                 if (
@@ -292,10 +297,11 @@ def main() -> None:
                 if evento not in concluidos
             ]
 
-            for acao, codigo in novas_acoes:
+            for acao, codigo, origem in novas_acoes:
                 pendentes.append(
                     {
                         "acao": acao.value,
+                        "origem": origem,
                         "codigo_tecla": codigo,
                         "timestamp": agora,
                         "antes": [
