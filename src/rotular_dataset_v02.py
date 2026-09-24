@@ -62,10 +62,10 @@ def caixa_para_yolo(
 
     return (
         f"{classe} "
-        f"{centro_x:.6f} "
-        f"{centro_y:.6f} "
-        f"{largura_norm:.6f} "
-        f"{altura_norm:.6f}"
+        f"{centro_x:.8f} "
+        f"{centro_y:.8f} "
+        f"{largura_norm:.8f} "
+        f"{altura_norm:.8f}"
     )
 
 
