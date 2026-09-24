@@ -12,6 +12,11 @@ CLASSES_VALIDAS = {
     1: "inimigo",
 }
 
+# Labels YOLO sao salvos em ponto flutuante. Uma caixa encostada
+# exatamente na borda pode ultrapassar 0..1 por poucos milionésimos
+# depois do arredondamento decimal, sem estar realmente fora da imagem.
+TOLERANCIA_BORDA = 1e-5
+
 
 def validar_linha_yolo(
     linha: str,
@@ -56,28 +61,28 @@ def validar_linha_yolo(
             classe,
         )
 
-    if centro_x - largura / 2 < 0:
+    if centro_x - largura / 2 < -TOLERANCIA_BORDA:
         return (
             False,
             "caixa ultrapassa a borda esquerda",
             classe,
         )
 
-    if centro_x + largura / 2 > 1:
+    if centro_x + largura / 2 > 1 + TOLERANCIA_BORDA:
         return (
             False,
             "caixa ultrapassa a borda direita",
             classe,
         )
 
-    if centro_y - altura / 2 < 0:
+    if centro_y - altura / 2 < -TOLERANCIA_BORDA:
         return (
             False,
             "caixa ultrapassa a borda superior",
             classe,
         )
 
-    if centro_y + altura / 2 > 1:
+    if centro_y + altura / 2 > 1 + TOLERANCIA_BORDA:
         return (
             False,
             "caixa ultrapassa a borda inferior",
