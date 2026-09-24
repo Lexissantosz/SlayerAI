@@ -1,0 +1,7 @@
+path: .
+train: dataset_v02/train/images
+val: dataset_v02/val/images
+
+names:
+  0: player
+  1: inimigo
