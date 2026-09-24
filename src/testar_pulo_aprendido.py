@@ -1,5 +1,6 @@
 import argparse
 import time
+from collections import deque
 from pathlib import Path
 
 import cv2
@@ -46,6 +47,32 @@ def main() -> None:
         type=float,
         default=8.0,
     )
+    parser.add_argument(
+        "--confirmacoes",
+        type=int,
+        default=2,
+        help=(
+            "Quantidade de frames recentes que precisam concordar "
+            "com PULAR. Padrao: 2."
+        ),
+    )
+    parser.add_argument(
+        "--janela",
+        type=int,
+        default=3,
+        help=(
+            "Tamanho da janela temporal usada para confirmar o pulo. "
+            "Padrao: 3."
+        ),
+    )
+    parser.add_argument(
+        "--cooldown",
+        type=float,
+        default=0.8,
+        help=(
+            "Segundos de espera apos uma decisao PULAR. Padrao: 0.8."
+        ),
+    )
     args = parser.parse_args()
 
     if not 0 < args.limiar <= 1:
@@ -73,6 +100,15 @@ def main() -> None:
         args.fps,
         1.0,
     )
+
+    janela = max(
+        args.confirmacoes,
+        args.janela,
+    )
+    historico = deque(
+        maxlen=janela
+    )
+    ultimo_pulo = -999.0
 
     print("SlayerAI - Pulo aprendido (dry-run)")
     print("=" * 40)
@@ -107,13 +143,30 @@ def main() -> None:
                 caracteristicas,
             )
 
-            quer_pular = (
+            historico.append(
                 prob >= args.limiar
             )
+
+            confirmacoes = sum(historico)
+            agora = time.monotonic()
+            fora_cooldown = (
+                agora - ultimo_pulo
+                >= args.cooldown
+            )
+            quer_pular = (
+                len(historico) >= args.confirmacoes
+                and confirmacoes >= args.confirmacoes
+                and fora_cooldown
+            )
+
+            if quer_pular:
+                ultimo_pulo = agora
+                historico.clear()
 
             preview = frame.copy()
             texto = (
                 f"PULO {prob:.0%} | "
+                f"conf {confirmacoes}/{janela} | "
                 + (
                     "PULAR"
                     if quer_pular
