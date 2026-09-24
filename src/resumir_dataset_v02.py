@@ -1,3 +1,4 @@
+import argparse
 from collections import Counter
 from pathlib import Path
 
@@ -41,8 +42,35 @@ def contar_classes(caminho: Path) -> Counter[int]:
 
 
 def main() -> None:
-    raws = sorted(RAW_DIR.glob("*.png"))
-    labels = sorted(LABELS_DIR.glob("*.txt"))
+    parser = argparse.ArgumentParser(
+        description=(
+            "Resume a distribuicao do dataset v0.2, "
+            "com filtro opcional por sessao."
+        )
+    )
+    parser.add_argument(
+        "--prefixo",
+        default=None,
+        help=(
+            "Analisa apenas arquivos com este prefixo. "
+            "Ex.: --prefixo sessao2"
+        ),
+    )
+    args = parser.parse_args()
+
+    padrao_imagem = (
+        f"{args.prefixo}_*.png"
+        if args.prefixo
+        else "*.png"
+    )
+    padrao_label = (
+        f"{args.prefixo}_*.txt"
+        if args.prefixo
+        else "*.txt"
+    )
+
+    raws = sorted(RAW_DIR.glob(padrao_imagem))
+    labels = sorted(LABELS_DIR.glob(padrao_label))
 
     total_raw = len(raws)
     total_labels = len(labels)
@@ -81,6 +109,8 @@ def main() -> None:
     )
 
     print("SlayerAI - Resumo dataset v0.2")
+    if args.prefixo:
+        print(f"Sessao: {args.prefixo}")
     print("=" * 40)
     print(f"Frames coletados: {total_raw}")
     print(
