@@ -63,10 +63,13 @@ def main() -> None:
     )
     parser.add_argument(
         "--val-prefixo",
+        action="append",
         required=True,
         help=(
-            "Prefixo da sessao reservada para "
-            "validacao. Ex.: frame"
+            "Prefixo de sessao reservada para validacao. "
+            "Pode ser repetido. Ex.: "
+            "--val-prefixo frame "
+            "--val-prefixo mundo2_val"
         ),
     )
     args = parser.parse_args()
@@ -82,27 +85,34 @@ def main() -> None:
         )
         return
 
-    prefixo = (
-        args.val_prefixo.rstrip("_")
-        + "_"
-    )
+    prefixos = [
+        prefixo.rstrip("_") + "_"
+        for prefixo in args.val_prefixo
+    ]
 
     val = [
         imagem
         for imagem in imagens
-        if imagem.name.startswith(prefixo)
+        if any(
+            imagem.name.startswith(prefixo)
+            for prefixo in prefixos
+        )
     ]
 
     train = [
         imagem
         for imagem in imagens
-        if not imagem.name.startswith(prefixo)
+        if not any(
+            imagem.name.startswith(prefixo)
+            for prefixo in prefixos
+        )
     ]
 
     if not val:
         raise ValueError(
-            "Nenhuma imagem corresponde ao "
-            f"prefixo de validacao: {prefixo}"
+            "Nenhuma imagem corresponde aos "
+            "prefixos de validacao: "
+            + ", ".join(prefixos)
         )
 
     if not train:
@@ -130,7 +140,7 @@ def main() -> None:
     print("=" * 40)
     print(
         "Validacao reservada por sessao: "
-        f"{args.val_prefixo}"
+        + ", ".join(args.val_prefixo)
     )
     print(f"Treino: {len(train)} imagem(ns)")
     print(
