@@ -61,6 +61,22 @@ def main() -> None:
             "Padrao: 8."
         ),
     )
+    parser.add_argument(
+        "--nome-run",
+        default="multiclasse_v02",
+        help=(
+            "Nome da pasta do run. "
+            "Padrao: multiclasse_v02."
+        ),
+    )
+    parser.add_argument(
+        "--saida-modelo",
+        default="multiclasse_v02_best.pt",
+        help=(
+            "Nome do melhor peso copiado para modelos/. "
+            "Padrao: multiclasse_v02_best.pt."
+        ),
+    )
     args = parser.parse_args()
 
     treino = contar_imagens(TRAIN_IMAGES)
@@ -102,7 +118,7 @@ def main() -> None:
         batch=args.batch,
         device=args.device,
         project=str(RUNS_DIR),
-        name="multiclasse_v02",
+        name=args.nome_run,
         exist_ok=True,
         workers=0,
         seed=42,
@@ -128,7 +144,7 @@ def main() -> None:
     )
     destino = (
         MODELOS_DIR
-        / "multiclasse_v02_best.pt"
+        / args.saida_modelo
     )
     shutil.copy2(
         melhor_peso,
