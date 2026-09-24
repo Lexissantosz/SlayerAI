@@ -625,6 +625,14 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--modelo-sugestao-inimigos",
+        default=str(MODELO_MULTICLASSE),
+        help=(
+            "Modelo usado para pre-rotular inimigos. "
+            "Padrao: modelos/multiclasse_v02_best.pt."
+        ),
+    )
+    parser.add_argument(
         "--amostra-diversa",
         type=int,
         default=0,
@@ -693,13 +701,17 @@ def main() -> None:
             )
             detector = None
 
+    modelo_sugestao_inimigos = Path(
+        args.modelo_sugestao_inimigos
+    )
+
     if (
         not args.sem_sugestao_inimigos
-        and MODELO_MULTICLASSE.exists()
+        and modelo_sugestao_inimigos.exists()
     ):
         try:
             detector_inimigos = DetectorMulticlasse(
-                modelo=MODELO_MULTICLASSE,
+                modelo=modelo_sugestao_inimigos,
                 conf=args.conf_sugestao_inimigos,
                 imgsz=320,
             )
