@@ -45,6 +45,46 @@ def exemplos_evento(
 ) -> list[tuple[np.ndarray, float]]:
     exemplos = []
 
+    antes = sorted(
+        pasta_evento.glob("antes_*.png")
+    )
+
+    if antes:
+        quantidade = max(
+            1,
+            min(2, len(antes) // 3),
+        )
+
+        negativos = antes[:quantidade]
+        positivos = antes[-quantidade:]
+
+        for caminho in negativos:
+            frame = cv2.imread(str(caminho))
+            if frame is None:
+                continue
+
+            exemplos.append(
+                (
+                    extrair_caracteristicas(frame),
+                    0.0,
+                )
+            )
+
+        for caminho in positivos:
+            if caminho in negativos:
+                continue
+
+            frame = cv2.imread(str(caminho))
+            if frame is None:
+                continue
+
+            exemplos.append(
+                (
+                    extrair_caracteristicas(frame),
+                    1.0,
+                )
+            )
+
     acao = cv2.imread(
         str(pasta_evento / "acao.png")
     )
@@ -53,27 +93,6 @@ def exemplos_evento(
             (
                 extrair_caracteristicas(acao),
                 1.0,
-            )
-        )
-
-    antes = sorted(
-        pasta_evento.glob("antes_*.png")
-    )
-
-    # Usa frames mais antigos como exemplos de
-    # "ainda nao pular". Os frames imediatamente
-    # anteriores podem ja conter a decisao se formando.
-    negativos = antes[:2]
-
-    for caminho in negativos:
-        frame = cv2.imread(str(caminho))
-        if frame is None:
-            continue
-
-        exemplos.append(
-            (
-                extrair_caracteristicas(frame),
-                0.0,
             )
         )
 
@@ -191,7 +210,6 @@ def main() -> None:
         )
         return
 
-    # Split por evento, nunca por frame.
     val_eventos = [
         evento
         for indice, evento in enumerate(eventos)
@@ -231,7 +249,14 @@ def main() -> None:
         previstos,
     )
 
-    # Modelo final usa todos os eventos.
+    proporcao_positiva = float(
+        np.mean(val_y == 1)
+    )
+    baseline_maioria = max(
+        proporcao_positiva,
+        1.0 - proporcao_positiva,
+    )
+
     todos_x, todos_y = montar_conjunto(
         eventos
     )
@@ -254,20 +279,39 @@ def main() -> None:
         f"Validacao por eventos: "
         f"{len(val_eventos)}"
     )
+    print(
+        f"Amostras treino: {len(treino_y)} "
+        f"(pular={int(np.sum(treino_y == 1))}, "
+        f"esperar={int(np.sum(treino_y == 0))})"
+    )
+    print(
+        f"Amostras validacao: {len(val_y)} "
+        f"(pular={int(np.sum(val_y == 1))}, "
+        f"esperar={int(np.sum(val_y == 0))})"
+    )
     print("")
-    print("Validacao inicial:")
+    print("Validacao temporal:")
+    print(
+        f"Baseline classe majoritaria: "
+        f"{baseline_maioria:.3f}"
+    )
     print(f"Acuracia: {acc:.3f}")
     print(f"Precisao pulo: {prec:.3f}")
     print(f"Recall pulo: {rec:.3f}")
     print(f"F1 pulo: {f1:.3f}")
     print("")
     print(
+        "Rotulagem: frames antigos antes do clique = "
+        "ESPERAR; ultimos frames antes do clique + "
+        "frame da acao = PULAR."
+    )
+    print(
         f"Modelo de exemplos salvo em: "
         f"{args.saida}"
     )
     print(
-        "Proximo passo: testar a decisao ao vivo "
-        "sem enviar comandos."
+        "Proximo passo: comparar essas metricas "
+        "antes do dry-run ao vivo."
     )
 
 
