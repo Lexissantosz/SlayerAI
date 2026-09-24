@@ -177,3 +177,29 @@ consistencia e possibilidade de serem inspecionadas.
 A estrategia e evoluir de "detectar objetos" para "entender estado, executar
 acao e confirmar resultado" sem transformar o comportamento em uma caixa
 preta impossivel de diagnosticar.
+
+
+## Modo professor
+
+Antes de exigir mais rotulagem manual, o projeto pode aprender com a forma
+como o usuario joga. O script `src/gravar_demonstracao.py` observa as teclas
+fisicas configuradas e salva automaticamente uma pequena janela visual antes,
+durante e depois de cada acao.
+
+Exemplo:
+
+```powershell
+python src/gravar_demonstracao.py
+```
+
+O modo professor nao envia comandos ao jogo. Ele apenas registra contexto
+visual para eventos como pular, atacar e atirar. Esses episodios servem para:
+
+- aprender quando uma acao costuma ser usada;
+- comparar o estado antes e depois da acao;
+- reduzir coleta manual de screenshots;
+- construir posteriormente classificadores de comportamento;
+- associar acoes com recompensas e resultados observados no HUD.
+
+A prioridade passa a ser aprender a partir de jogo real e usar rotulagem
+manual somente para corrigir ambiguidades que o sistema nao consegue resolver.
