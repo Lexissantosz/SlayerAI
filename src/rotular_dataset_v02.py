@@ -481,16 +481,30 @@ def main() -> None:
             "a caixa do player."
         ),
     )
+    parser.add_argument(
+        "--prefixo",
+        default=None,
+        help=(
+            "Rotula apenas arquivos de uma sessao. "
+            "Ex.: --prefixo sessao2"
+        ),
+    )
     args = parser.parse_args()
 
+    padrao = (
+        f"{args.prefixo}_*.png"
+        if args.prefixo
+        else "*.png"
+    )
+
     arquivos = sorted(
-        RAW_DIR.glob("*.png")
+        RAW_DIR.glob(padrao)
     )
 
     if not arquivos:
         print(
             "Nenhum frame encontrado em "
-            "dataset_v02/raw."
+            "dataset_v02/raw para o filtro informado."
         )
         return
 
