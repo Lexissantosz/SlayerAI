@@ -4,7 +4,7 @@ SlayerAI e um projeto experimental de visao computacional e automacao para o Idl
 
 A proposta e construir a automacao em camadas: primeiro enxergar o jogo com seguranca e de forma portatil; depois reconhecer outros elementos da tela; por fim, adicionar decisoes e comandos.
 
-## Estado atual: v0.1
+## Estado atual: v0.1 concluida na branch de feature
 
 A v0.1 ja possui:
 
@@ -22,7 +22,9 @@ A v0.1 ja possui:
 - benchmark offline de latencia e taxa de deteccao;
 - diagnostico do ambiente;
 - testes automatizados de funcoes puras;
-- CI no GitHub Actions.
+- CI no GitHub Actions;
+- entrada Win32 em segundo plano validada com o jogo;
+- dry-run ao vivo integrando captura, detector, EstadoJogo e decisor.
 
 A camada de controle do jogo ainda nao faz parte da v0.1.
 
@@ -124,6 +126,17 @@ python src/benchmark_detector.py --limite 50 --roi 0,0,0.55,1
 ```
 
 O benchmark informa taxa de deteccao, latencia media, mediana, P95 e confianca media.
+
+### Resultado de referencia
+
+No PC de referencia, com `imgsz=320`, `conf=0.30` e ROI `0,0,0.30,1`:
+
+- 100 imagens processadas;
+- 100 deteccoes (100.0%);
+- inferencia media: 175.3 ms;
+- mediana: 90.6 ms;
+- P95: 148.0 ms;
+- confianca media: 0.822.
 
 ## Pipeline de dataset
 
