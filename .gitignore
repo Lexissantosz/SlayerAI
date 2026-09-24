@@ -1,0 +1,53 @@
+.venv/
+__pycache__/
+*.py[cod]
+.vscode/
+.idea/
+
+# Capturas e dados locais do jogo
+capturas/*.png
+dataset/raw/*
+dataset/labels_raw/*
+dataset/images/*
+dataset/labels/*
+!dataset/raw/.gitkeep
+!dataset/labels_raw/.gitkeep
+!dataset/images/.gitkeep
+!dataset/labels/.gitkeep
+
+# Artefatos de treino
+runs/
+models/*.pt
+models/*.engine
+
+# Template local opcional usado apenas para pré-rotulagem
+assets/personagem_template.png
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Splits locais de treino/validacao
+dataset/train/*
+dataset/val/*
+!dataset/train/.gitkeep
+!dataset/val/.gitkeep
+
+# Pesos de treino locais; o modelo portatil final sera ONNX
+modelos/*.pt
+modelos/*.engine
+!modelos/player_v01.onnx
+
+.pytest_cache/
+*.log
+yolo*.pt
+
+# Configuracao local de controles
+config.local.json
+
+# Sessoes locais de dry-run/replay
+sessoes/*
+!sessoes/.gitkeep
+
+# Backups locais podem conter dataset e modelos
+backups/

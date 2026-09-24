@@ -1,0 +1,6 @@
+path: .
+train: dataset/train/images
+val: dataset/val/images
+
+names:
+  0: player
