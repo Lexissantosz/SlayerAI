@@ -51,3 +51,15 @@ sessoes/*
 
 # Backups locais podem conter dataset e modelos
 backups/
+
+# Dataset multiclasse local da v0.2
+dataset_v02/raw/*
+dataset_v02/images/*
+dataset_v02/labels/*
+dataset_v02/train/*
+dataset_v02/val/*
+!dataset_v02/raw/.gitkeep
+!dataset_v02/images/.gitkeep
+!dataset_v02/labels/.gitkeep
+!dataset_v02/train/.gitkeep
+!dataset_v02/val/.gitkeep
