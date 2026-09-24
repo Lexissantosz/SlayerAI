@@ -96,6 +96,27 @@ def exemplos_evento(
             )
         )
 
+    depois = sorted(
+        pasta_evento.glob("depois_*.png")
+    )
+
+    # Os ultimos frames depois do pulo tendem a representar
+    # retorno ao estado normal. Eles ajudam a ensinar que
+    # "coisa no chao" nem sempre significa pular.
+    negativos_depois = depois[-2:]
+
+    for caminho in negativos_depois:
+        frame = cv2.imread(str(caminho))
+        if frame is None:
+            continue
+
+        exemplos.append(
+            (
+                extrair_caracteristicas(frame),
+                0.0,
+            )
+        )
+
     return exemplos
 
 
@@ -301,8 +322,9 @@ def main() -> None:
     print(f"F1 pulo: {f1:.3f}")
     print("")
     print(
-        "Rotulagem: frames antigos antes do clique = "
-        "ESPERAR; ultimos frames antes do clique + "
+        "Rotulagem: frames antigos antes do clique + "
+        "ultimos frames depois do pulo = ESPERAR; "
+        "ultimos frames antes do clique + "
         "frame da acao = PULAR."
     )
     print(
