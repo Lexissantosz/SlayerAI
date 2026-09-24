@@ -56,40 +56,101 @@ def extrair_caracteristicas(frame: np.ndarray) -> np.ndarray:
     )
 
 
+class KNNNumpy:
+    def __init__(
+        self,
+        amostras: np.ndarray,
+        rotulos: np.ndarray,
+    ):
+        if amostras.ndim != 2:
+            raise ValueError(
+                "amostras deve ser uma matriz 2D."
+            )
+
+        if len(amostras) != len(rotulos):
+            raise ValueError(
+                "amostras e rotulos devem ter "
+                "o mesmo tamanho."
+            )
+
+        if len(amostras) == 0:
+            raise ValueError(
+                "Nao ha amostras para o KNN."
+            )
+
+        self.amostras = np.ascontiguousarray(
+            amostras,
+            dtype=np.float32,
+        )
+        self.rotulos = np.asarray(
+            rotulos,
+            dtype=np.int8,
+        ).reshape(-1)
+        self.normas = np.sum(
+            self.amostras * self.amostras,
+            axis=1,
+        )
+
+
 def criar_knn(
     amostras: np.ndarray,
     rotulos: np.ndarray,
-) -> cv2.ml_KNearest:
-    knn = cv2.ml.KNearest_create()
-    knn.setDefaultK(K_PADRAO)
-    knn.setIsClassifier(True)
-    knn.train(
-        amostras,
-        cv2.ml.ROW_SAMPLE,
-        rotulos,
+) -> KNNNumpy:
+    # Implementacao propria para nao depender de
+    # cv2.ml, ausente em algumas builds do OpenCV
+    # usadas com Python 3.14.
+    return KNNNumpy(
+        amostras=amostras,
+        rotulos=rotulos,
     )
-    return knn
 
 
 def prever(
-    knn: cv2.ml_KNearest,
+    knn: KNNNumpy,
     caracteristicas: np.ndarray,
     k: int = K_PADRAO,
 ) -> tuple[int, float]:
-    _, resultado, vizinhos, _ = (
-        knn.findNearest(
-            caracteristicas,
-            k,
+    consulta = np.asarray(
+        caracteristicas,
+        dtype=np.float32,
+    ).reshape(-1)
+
+    if consulta.size != knn.amostras.shape[1]:
+        raise ValueError(
+            "Dimensao da amostra diferente do modelo."
+        )
+
+    k_efetivo = max(
+        1,
+        min(int(k), len(knn.rotulos)),
+    )
+
+    # Distancia euclidiana ao quadrado usando produto
+    # escalar, evitando criar uma matriz gigante de
+    # diferencas a cada frame.
+    distancias = (
+        knn.normas
+        + float(np.dot(consulta, consulta))
+        - 2.0 * np.dot(
+            knn.amostras,
+            consulta,
         )
     )
 
-    classe = int(resultado[0, 0])
+    indices = np.argpartition(
+        distancias,
+        k_efetivo - 1,
+    )[:k_efetivo]
+
+    vizinhos = knn.rotulos[indices]
     prob_pulo = float(
-        np.mean(vizinhos[0] == 1)
+        np.mean(vizinhos == 1)
+    )
+    classe = int(
+        prob_pulo >= 0.5
     )
 
     return classe, prob_pulo
-
 
 def salvar_dataset_modelo(
     caminho: str | Path,
