@@ -63,3 +63,6 @@ dataset_v02/val/*
 !dataset_v02/labels/.gitkeep
 !dataset_v02/train/.gitkeep
 !dataset_v02/val/.gitkeep
+
+# Demonstracoes locais do usuario
+demonstracoes/
