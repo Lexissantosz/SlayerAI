@@ -23,16 +23,33 @@ def extrair_caracteristicas(frame: np.ndarray) -> np.ndarray:
         cinza,
         (LARGURA, ALTURA),
         interpolation=cv2.INTER_AREA,
+    ).astype(np.float32)
+
+    # Evita depender de cv2.HOGDescriptor, que nao
+    # esta disponivel em algumas builds recentes do
+    # OpenCV/Python 3.14. Usamos intensidade +
+    # gradientes simples calculados com NumPy.
+    intensidade = reduzida / 255.0
+
+    grad_x = np.zeros_like(intensidade)
+    grad_y = np.zeros_like(intensidade)
+
+    grad_x[:, 1:] = (
+        intensidade[:, 1:]
+        - intensidade[:, :-1]
+    )
+    grad_y[1:, :] = (
+        intensidade[1:, :]
+        - intensidade[:-1, :]
     )
 
-    hog = cv2.HOGDescriptor(
-        (LARGURA, ALTURA),
-        (16, 16),
-        (8, 8),
-        (8, 8),
-        9,
+    vetor = np.concatenate(
+        (
+            intensidade.reshape(-1),
+            grad_x.reshape(-1),
+            grad_y.reshape(-1),
+        )
     )
-    vetor = hog.compute(reduzida)
 
     return vetor.reshape(1, -1).astype(
         np.float32
