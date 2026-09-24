@@ -82,6 +82,14 @@ def main() -> None:
             "a sessao. Ex.: sessao2"
         ),
     )
+    parser.add_argument(
+        "--somente-manual",
+        action="store_true",
+        help=(
+            "Nao salva automaticamente. "
+            "Use S para capturar apenas cenas desejadas."
+        ),
+    )
     args = parser.parse_args()
 
     prefixo = "".join(
@@ -110,7 +118,14 @@ def main() -> None:
     print("Coleta iniciada.")
     print(f"Saida: {pasta_saida}")
     print(f"Sessao: {prefixo}")
-    print("Q = encerrar | S = salvar um frame imediatamente")
+    if args.somente_manual:
+        print(
+            "Modo manual: S = salvar frame | Q = encerrar"
+        )
+    else:
+        print(
+            "Q = encerrar | S = salvar um frame imediatamente"
+        )
 
     ultimo_salvo = 0.0
     assinatura_anterior = None
@@ -151,13 +166,16 @@ def main() -> None:
             tecla = cv2.waitKey(1) & 0xFF
             forcar = tecla == ord("s")
 
-            if forcar or (
-                pode_salvar
+            salvar_automatico = (
+                not args.somente_manual
+                and pode_salvar
                 and (
                     assinatura_anterior is None
                     or mudanca >= args.mudanca_minima
                 )
-            ):
+            )
+
+            if forcar or salvar_automatico:
                 caminho = salvar_frame(
                     frame,
                     salvos,
