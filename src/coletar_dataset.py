@@ -29,9 +29,13 @@ def diferenca_percentual(
     return float(diferenca.mean() / 255.0 * 100.0)
 
 
-def salvar_frame(frame: np.ndarray, indice: int) -> Path:
+def salvar_frame(
+    frame: np.ndarray,
+    indice: int,
+    pasta: Path = PASTA_RAW,
+) -> Path:
     momento = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    caminho = PASTA_RAW / f"frame_{indice:05d}_{momento}.png"
+    caminho = pasta / f"frame_{indice:05d}_{momento}.png"
     cv2.imwrite(str(caminho), frame)
     return caminho
 
@@ -58,9 +62,18 @@ def main() -> None:
         default=300,
         help="Numero maximo de frames. Use 0 para ilimitado.",
     )
+    parser.add_argument(
+        "--saida",
+        default=str(PASTA_RAW),
+        help=(
+            "Pasta onde os frames serao salvos. "
+            "Padrao: dataset/raw"
+        ),
+    )
     args = parser.parse_args()
 
-    PASTA_RAW.mkdir(parents=True, exist_ok=True)
+    pasta_saida = Path(args.saida)
+    pasta_saida.mkdir(parents=True, exist_ok=True)
 
     try:
         captura = IdleSlayerCapture()
@@ -69,6 +82,7 @@ def main() -> None:
         return
 
     print("Coleta iniciada.")
+    print(f"Saida: {pasta_saida}")
     print("Q = encerrar | S = salvar um frame imediatamente")
 
     ultimo_salvo = 0.0
@@ -117,7 +131,11 @@ def main() -> None:
                     or mudanca >= args.mudanca_minima
                 )
             ):
-                caminho = salvar_frame(frame, salvos)
+                caminho = salvar_frame(
+                    frame,
+                    salvos,
+                    pasta=pasta_saida,
+                )
                 salvos += 1
                 ultimo_salvo = agora
                 assinatura_anterior = atual.copy()
