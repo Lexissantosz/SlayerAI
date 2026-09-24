@@ -6,6 +6,8 @@ import cv2
 import numpy as np
 
 from detector import DetectorPlayer
+from detector_multiclasse import DetectorMulticlasse
+from estado_jogo import TipoObjeto
 from visao_utils import ROI
 
 
@@ -13,6 +15,7 @@ RAW_DIR = Path("dataset_v02/raw")
 IMAGES_DIR = Path("dataset_v02/images")
 LABELS_DIR = Path("dataset_v02/labels")
 MODELO_PLAYER = Path("modelos/player_v01.onnx")
+MODELO_MULTICLASSE = Path("modelos/multiclasse_v02_best.pt")
 
 CLASSE_PLAYER = 0
 CLASSE_INIMIGO = 1
@@ -197,6 +200,121 @@ def sugerir_player(
         x2 - x1,
         y2 - y1,
     )
+
+
+def sugerir_inimigos(
+    detector: DetectorMulticlasse | None,
+    imagem: np.ndarray,
+) -> list[tuple[int, tuple[int, int, int, int]]]:
+    if detector is None:
+        return []
+
+    resultado = detector.detectar(imagem)
+    sugestoes = []
+
+    for deteccao in resultado.deteccoes:
+        if deteccao.tipo != TipoObjeto.INIMIGO:
+            continue
+
+        x1, y1, x2, y2 = deteccao.caixa
+        sugestoes.append(
+            (
+                CLASSE_INIMIGO,
+                (
+                    x1,
+                    y1,
+                    x2 - x1,
+                    y2 - y1,
+                ),
+            )
+        )
+
+    return sugestoes
+
+
+def assinatura_diversidade(
+    caminho: Path,
+) -> np.ndarray | None:
+    imagem = cv2.imread(str(caminho))
+
+    if imagem is None:
+        return None
+
+    cinza = cv2.cvtColor(
+        imagem,
+        cv2.COLOR_BGR2GRAY,
+    )
+    pequena = cv2.resize(
+        cinza,
+        (64, 36),
+        interpolation=cv2.INTER_AREA,
+    )
+
+    return pequena.astype(np.float32)
+
+
+def selecionar_amostra_diversa(
+    arquivos: list[Path],
+    quantidade: int,
+) -> list[Path]:
+    if quantidade <= 0 or quantidade >= len(arquivos):
+        return arquivos
+
+    candidatos = []
+    for caminho in arquivos:
+        assinatura = assinatura_diversidade(caminho)
+        if assinatura is not None:
+            candidatos.append(
+                (caminho, assinatura)
+            )
+
+    if len(candidatos) <= quantidade:
+        return [caminho for caminho, _ in candidatos]
+
+    selecionados = [0]
+    distancias_min = np.full(
+        len(candidatos),
+        np.inf,
+        dtype=np.float32,
+    )
+
+    while len(selecionados) < quantidade:
+        ultimo = selecionados[-1]
+        assinatura_ref = candidatos[ultimo][1]
+
+        for indice, (_, assinatura) in enumerate(candidatos):
+            if indice in selecionados:
+                distancias_min[indice] = -1
+                continue
+
+            distancia = float(
+                np.mean(
+                    np.abs(
+                        assinatura
+                        - assinatura_ref
+                    )
+                )
+            )
+            distancias_min[indice] = min(
+                distancias_min[indice],
+                distancia,
+            )
+
+        proximo = int(
+            np.argmax(distancias_min)
+        )
+
+        if proximo in selecionados:
+            break
+
+        selecionados.append(proximo)
+
+    escolhidos = [
+        candidatos[indice][0]
+        for indice in selecionados
+    ]
+
+    return sorted(escolhidos)
 
 
 def selecionar_caixas(
@@ -489,6 +607,32 @@ def main() -> None:
             "Ex.: --prefixo sessao2"
         ),
     )
+    parser.add_argument(
+        "--sem-sugestao-inimigos",
+        action="store_true",
+        help=(
+            "Nao usa o baseline multiclasse para "
+            "sugerir caixas de inimigos."
+        ),
+    )
+    parser.add_argument(
+        "--conf-sugestao-inimigos",
+        type=float,
+        default=0.10,
+        help=(
+            "Confianca minima para sugestoes automaticas "
+            "de inimigos. Padrao: 0.10."
+        ),
+    )
+    parser.add_argument(
+        "--amostra-diversa",
+        type=int,
+        default=0,
+        help=(
+            "Rotula somente N frames visualmente diversos "
+            "da sessao. 0 = usa todos."
+        ),
+    )
     args = parser.parse_args()
 
     padrao = (
@@ -501,6 +645,17 @@ def main() -> None:
         RAW_DIR.glob(padrao)
     )
 
+    if args.amostra_diversa > 0:
+        total_original = len(arquivos)
+        arquivos = selecionar_amostra_diversa(
+            arquivos,
+            args.amostra_diversa,
+        )
+        print(
+            "Amostra diversa: "
+            f"{len(arquivos)}/{total_original} frame(s)"
+        )
+
     if not arquivos:
         print(
             "Nenhum frame encontrado em "
@@ -509,6 +664,7 @@ def main() -> None:
         return
 
     detector = None
+    detector_inimigos = None
 
     if (
         not args.sem_sugestao_player
@@ -536,6 +692,31 @@ def main() -> None:
                 f"do player: {erro}"
             )
             detector = None
+
+    if (
+        not args.sem_sugestao_inimigos
+        and MODELO_MULTICLASSE.exists()
+    ):
+        try:
+            detector_inimigos = DetectorMulticlasse(
+                modelo=MODELO_MULTICLASSE,
+                conf=args.conf_sugestao_inimigos,
+                imgsz=320,
+            )
+            print(
+                "Sugestao automatica de inimigos: ATIVA "
+                f"(conf={args.conf_sugestao_inimigos:.2f})"
+            )
+            print(
+                "Revise as caixas: sugestoes podem ter "
+                "falsos positivos ou inimigos faltando."
+            )
+        except Exception as erro:
+            print(
+                "Nao foi possivel ativar a sugestao "
+                f"de inimigos: {erro}"
+            )
+            detector_inimigos = None
 
     processados = 0
 
@@ -587,6 +768,13 @@ def main() -> None:
                             sugestao,
                         )
                     )
+
+                existentes.extend(
+                    sugerir_inimigos(
+                        detector_inimigos,
+                        imagem,
+                    )
+                )
 
             print(
                 f"[{indice}/{len(arquivos)}] "
