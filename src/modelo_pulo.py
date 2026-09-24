@@ -156,6 +156,7 @@ def salvar_dataset_modelo(
     caminho: str | Path,
     amostras: np.ndarray,
     rotulos: np.ndarray,
+    limiar: float = 0.60,
 ) -> None:
     caminho = Path(caminho)
     caminho.parent.mkdir(
@@ -167,6 +168,10 @@ def salvar_dataset_modelo(
         caminho,
         amostras=amostras,
         rotulos=rotulos,
+        limiar=np.asarray(
+            [limiar],
+            dtype=np.float32,
+        ),
     )
 
 
@@ -178,4 +183,18 @@ def carregar_dataset_modelo(
     return (
         dados["amostras"].astype(np.float32),
         dados["rotulos"].astype(np.float32),
+    )
+
+
+def carregar_limiar_modelo(
+    caminho: str | Path,
+    padrao: float = 0.60,
+) -> float:
+    dados = np.load(str(caminho))
+
+    if "limiar" not in dados:
+        return padrao
+
+    return float(
+        dados["limiar"].reshape(-1)[0]
     )
